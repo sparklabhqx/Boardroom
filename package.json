@@ -1,0 +1,30 @@
+{
+  "name": "boardroom",
+  "version": "0.1.0",
+  "description": "Local ESP32 device manager with OTA updates.",
+  "type": "module",
+  "main": "electron/main.mjs",
+  "scripts": {
+    "dev": "concurrently \"npm:dev:web\" \"npm:dev:desktop\"",
+    "dev:web": "vite --host 127.0.0.1",
+    "dev:desktop": "wait-on tcp:5173 && electron .",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "start": "electron ."
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^5.1.1",
+    "electron": "^39.2.7",
+    "lucide-react": "^0.554.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "vite": "^7.2.6"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "concurrently": "^9.2.1",
+    "typescript": "^5.9.3",
+    "wait-on": "^9.0.3"
+  }
+}
