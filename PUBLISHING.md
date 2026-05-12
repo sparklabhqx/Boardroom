@@ -1,20 +1,22 @@
 # Publishing Boardroom
 
-The Boardroom v1 source is committed locally. The GitHub repository could not be populated from this Codex session because every available write path was blocked:
+The Boardroom v1 source is published to `sparklabhqx/Boardroom` on the `main` branch. This workspace uses the SSH host alias `github-sparklabhqx`, which points at `~/.ssh/id_ed25519_github_sparklabhqx`.
+
+The working HTTPS remote originally could not push because every available HTTPS or app-based write path was blocked:
 
 - The GitHub app has read-only access to `sparklabhqx/Boardroom`.
 - The GitHub contents API returned `403 Resource not accessible by integration`.
 - HTTPS Git push has no usable username/token.
-- SSH Git push failed with `Permission denied (publickey)`.
+- Plain SSH Git push to `github.com` failed with `Permission denied (publickey)`.
 - `~/.config/gh/hosts.yml` does not contain a GitHub token, and `gh` is not installed.
 
-## Preferred Push
+## Push From This Workspace
 
-After GitHub credentials are available:
+Use the configured SSH alias:
 
 ```bash
 cd /Users/flo/Boardroom
-git push -u origin main
+git push git@github-sparklabhqx:sparklabhqx/Boardroom.git main:main
 ```
 
 ## Import From Bundle
