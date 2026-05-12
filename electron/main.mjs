@@ -1,6 +1,7 @@
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import { createReadStream, statSync } from 'node:fs';
 import http from 'node:http';
+import { networkInterfaces } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -10,6 +11,20 @@ const BACKEND_PORT = Number(process.env.BOARDROOM_BACKEND_PORT || 8765);
 
 let mainWindow;
 let backendServer;
+
+function getDefaultScanRange() {
+  for (const addresses of Object.values(networkInterfaces())) {
+    for (const address of addresses || []) {
+      if (address.family === 'IPv4' && !address.internal && address.address) {
+        const parts = address.address.split('.');
+        if (parts.length === 4) {
+          return `${parts[0]}.${parts[1]}.${parts[2]}.1-254`;
+        }
+      }
+    }
+  }
+  return '192.168.1.1-254';
+}
 
 function normalizeHost(input) {
   return String(input || '')
@@ -252,7 +267,11 @@ function createWindow() {
 
 app.whenReady().then(() => {
   createBackendServer();
-  ipcMain.handle('backend:status', () => ({ port: BACKEND_PORT, url: `http://127.0.0.1:${BACKEND_PORT}` }));
+  ipcMain.handle('backend:status', () => ({
+    port: BACKEND_PORT,
+    url: `http://127.0.0.1:${BACKEND_PORT}`,
+    defaultScanRange: getDefaultScanRange(),
+  }));
   ipcMain.handle('device:probe', (_event, ip) => probeDevice(ip));
   ipcMain.handle('device:scan-range', (_event, range) => scanRange(range));
   ipcMain.handle('device:set-gpio', (_event, payload) => setGpio(payload));

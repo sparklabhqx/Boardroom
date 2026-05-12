@@ -38,7 +38,7 @@ export type UploadProgress = {
 };
 
 export type BoardroomApi = {
-  getBackendStatus: () => Promise<{ port: number; url: string }>;
+  getBackendStatus: () => Promise<{ port: number; url: string; defaultScanRange?: string }>;
   probeDevice: (ip: string) => Promise<ProbeResult>;
   scanRange: (range: string) => Promise<ProbeResult[]>;
   setGpio: (ip: string, pin: number, value: 0 | 1) => Promise<ProbeResult>;

@@ -127,7 +127,7 @@ function App() {
   const [settings, setSettings] = useState<AppSettings>(loadSettings);
   const [manualIp, setManualIp] = useState('');
   const [scanBusy, setScanBusy] = useState(false);
-  const [backendStatus, setBackendStatus] = useState<{ port: number; url: string } | null>(null);
+  const [backendStatus, setBackendStatus] = useState<{ port: number; url: string; defaultScanRange?: string } | null>(null);
   const [firmwareFile, setFirmwareFile] = useState<FirmwareFile | null>(null);
   const [otaDeviceId, setOtaDeviceId] = useState<string | undefined>();
   const [uploadState, setUploadState] = useState<{ busy: boolean; percent: number; message: string; ok?: boolean }>({
@@ -148,7 +148,19 @@ function App() {
   }, [settings]);
 
   useEffect(() => {
-    getApi()?.getBackendStatus().then(setBackendStatus).catch(() => setBackendStatus(null));
+    getApi()
+      ?.getBackendStatus()
+      .then((status) => {
+        setBackendStatus(status);
+        if (status.defaultScanRange) {
+          setSettings((current) =>
+            current.scanRange === defaultSettings.scanRange
+              ? { ...current, scanRange: status.defaultScanRange || current.scanRange }
+              : current,
+          );
+        }
+      })
+      .catch(() => setBackendStatus(null));
   }, []);
 
   useEffect(() => {
@@ -604,7 +616,7 @@ function OtaView(props: {
 
 function SettingsView(props: {
   settings: AppSettings;
-  backendStatus: { port: number; url: string } | null;
+  backendStatus: { port: number; url: string; defaultScanRange?: string } | null;
   scanBusy: boolean;
   onSettingsChange: (settings: AppSettings) => void;
   onScan: () => void;
