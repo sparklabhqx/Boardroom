@@ -1,3 +1,6 @@
+import Anthropic from '@anthropic-ai/sdk';
+import bonjourPkg from 'bonjour-service';
+const { Bonjour } = bonjourPkg;
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import { createReadStream, statSync } from 'node:fs';
 import http from 'node:http';
@@ -8,9 +11,13 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const BACKEND_PORT = Number(process.env.BOARDROOM_BACKEND_PORT || 8765);
+const HEARTBEAT_INTERVAL_MS = 30_000;
 
 let mainWindow;
 let backendServer;
+let heartbeatTimer = null;
+let bonjour = null;
+const trackedIps = new Set();
 
 function getDefaultScanRange() {
   for (const addresses of Object.values(networkInterfaces())) {
@@ -241,6 +248,44 @@ function createBackendServer() {
   backendServer.listen(BACKEND_PORT, '127.0.0.1');
 }
 
+function startHeartbeat() {
+  if (heartbeatTimer) return;
+  heartbeatTimer = setInterval(async () => {
+    if (!mainWindow || mainWindow.isDestroyed() || trackedIps.size === 0) return;
+    const results = await Promise.all([...trackedIps].map(probeDevice));
+    mainWindow.webContents.send('device:heartbeat', results);
+  }, HEARTBEAT_INTERVAL_MS);
+}
+
+function startMdns() {
+  bonjour = new Bonjour();
+  const browser = bonjour.find({ type: 'boardroom' });
+  browser.on('up', async (service) => {
+    const ip = service.addresses?.find((a) => /^\d+\.\d+\.\d+\.\d+$/.test(a)) || service.host;
+    if (!ip || mainWindow?.isDestroyed()) return;
+    const result = await probeDevice(ip);
+    if (result.ok) mainWindow?.webContents.send('device:discovered', result);
+  });
+}
+
+async function sendChat({ messages, deviceContext, apiKey }) {
+  const client = new Anthropic({ apiKey: apiKey || process.env.ANTHROPIC_API_KEY || '' });
+  const systemText = deviceContext
+    ? `You are an assistant embedded in Boardroom, a local ESP32 device management desktop app.\n\nCurrent device:\n${JSON.stringify(deviceContext, null, 2)}`
+    : `You are an assistant embedded in Boardroom, a local ESP32 device management desktop app. No device is currently selected.`;
+  try {
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1024,
+      system: [{ type: 'text', text: systemText, cache_control: { type: 'ephemeral' } }],
+      messages,
+    });
+    return { ok: true, content: response.content[0].text };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Chat request failed' };
+  }
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -288,14 +333,23 @@ app.whenReady().then(() => {
     return { path: filePath, name: path.basename(filePath), size: stats.size };
   });
   ipcMain.handle('firmware:upload', (_event, payload) => uploadFirmware(payload));
+  ipcMain.handle('chat:send', (_event, payload) => sendChat(payload));
+  ipcMain.handle('device:set-tracked', (_event, ips) => {
+    trackedIps.clear();
+    for (const ip of ips) trackedIps.add(ip);
+  });
 
   createWindow();
+  startHeartbeat();
+  startMdns();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
 
 app.on('window-all-closed', () => {
+  if (heartbeatTimer) clearInterval(heartbeatTimer);
+  bonjour?.destroy();
   backendServer?.close();
   if (process.platform !== 'darwin') app.quit();
 });

@@ -10,6 +10,13 @@ const char *WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
 const char *DEVICE_NAME = "Boardroom ESP32";
 const char *FIRMWARE_VERSION = "0.1.0";
 
+// Static IP — set to an address outside your router's DHCP range.
+// Change STATIC_IP and GATEWAY to match your network, or set USE_STATIC_IP to false for DHCP.
+const bool USE_STATIC_IP = true;
+IPAddress STATIC_IP(192, 168, 1, 200);
+IPAddress GATEWAY(192, 168, 1, 1);
+IPAddress SUBNET(255, 255, 255, 0);
+
 const int GPIO_PINS[] = {2, 4, 5, 12, 13};
 const size_t BOARDROOM_GPIO_PIN_COUNT = sizeof(GPIO_PINS) / sizeof(GPIO_PINS[0]);
 
@@ -189,6 +196,7 @@ void setupRoutes() {
 
 void connectWifi() {
   WiFi.mode(WIFI_STA);
+  if (USE_STATIC_IP) WiFi.config(STATIC_IP, GATEWAY, SUBNET);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to Wi-Fi");
   while (WiFi.status() != WL_CONNECTED) {

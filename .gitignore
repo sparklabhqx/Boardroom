@@ -5,3 +5,7 @@ dist/
 *.log
 firmware/**/build/
 firmware/**/*.bin
+*.patch
+*.bundle
+*.zip
+driver.mjs

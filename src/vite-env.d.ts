@@ -37,6 +37,11 @@ export type UploadProgress = {
   percent: number;
 };
 
+export type ChatMessage = {
+  role: 'user' | 'assistant';
+  content: string;
+};
+
 export type BoardroomApi = {
   getBackendStatus: () => Promise<{ port: number; url: string; defaultScanRange?: string }>;
   probeDevice: (ip: string) => Promise<ProbeResult>;
@@ -46,6 +51,10 @@ export type BoardroomApi = {
   selectFirmwareFile: () => Promise<FirmwareFile | null>;
   uploadFirmware: (ip: string, filePath: string, requestId: string) => Promise<{ ok: boolean; statusCode?: number; body?: string; error?: string }>;
   onUploadProgress: (callback: (progress: UploadProgress) => void) => () => void;
+  sendChat: (payload: { messages: ChatMessage[]; deviceContext?: unknown; apiKey?: string }) => Promise<{ ok: boolean; content?: string; error?: string }>;
+  setTrackedDevices: (ips: string[]) => Promise<void>;
+  onHeartbeat: (callback: (results: ProbeResult[]) => void) => () => void;
+  onDeviceDiscovered: (callback: (result: ProbeResult) => void) => () => void;
 };
 
 declare global {

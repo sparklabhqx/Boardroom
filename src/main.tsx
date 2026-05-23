@@ -7,10 +7,12 @@ import {
   LayoutDashboard,
   ListRestart,
   Loader2,
+  MessageSquare,
   Plus,
   RefreshCcw,
   Router,
   Search,
+  SendHorizonal,
   Settings,
   Terminal,
   ToggleLeft,
@@ -19,10 +21,10 @@ import {
   Wifi,
   WifiOff,
 } from 'lucide-react';
-import type { DeviceInfo, FirmwareFile, GpioState, ProbeResult, UploadProgress } from './vite-env';
+import type { ChatMessage, DeviceInfo, FirmwareFile, GpioState, ProbeResult, UploadProgress } from './vite-env';
 import './styles.css';
 
-type Section = 'devices' | 'ota' | 'settings';
+type Section = 'devices' | 'ota' | 'settings' | 'chat';
 
 type DeviceRecord = {
   id: string;
@@ -41,6 +43,7 @@ type AppSettings = {
   scanRange: string;
   gpioPins: number[];
   backendPort: number;
+  anthropicApiKey: string;
 };
 
 const storageKeys = {
@@ -52,6 +55,7 @@ const defaultSettings: AppSettings = {
   scanRange: '192.168.1.1-254',
   gpioPins: [2, 4, 5, 12, 13],
   backendPort: 8765,
+  anthropicApiKey: '',
 };
 
 function loadDevices(): DeviceRecord[] {
@@ -135,13 +139,29 @@ function App() {
     percent: 0,
     message: 'Select a device and firmware binary.',
   });
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   const selectedDevice = devices.find((device) => device.id === selectedId) || devices[0];
   const otaDevice = devices.find((device) => device.id === otaDeviceId) || selectedDevice;
 
   useEffect(() => {
     localStorage.setItem(storageKeys.devices, JSON.stringify(devices));
+    getApi()?.setTrackedDevices(devices.map((d) => d.ip));
   }, [devices]);
+
+  useEffect(() => {
+    const dispose = getApi()?.onHeartbeat((results) => {
+      results.forEach(mergeDevice);
+    });
+    return () => dispose?.();
+  }, []);
+
+  useEffect(() => {
+    const dispose = getApi()?.onDeviceDiscovered((result) => {
+      mergeDevice(result);
+    });
+    return () => dispose?.();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(storageKeys.settings, JSON.stringify(settings));
@@ -270,6 +290,7 @@ function App() {
   const navigation = [
     { id: 'devices' as Section, label: 'Devices', icon: LayoutDashboard },
     { id: 'ota' as Section, label: 'OTA', icon: HardDriveUpload },
+    { id: 'chat' as Section, label: 'Chat', icon: MessageSquare },
     { id: 'settings' as Section, label: 'Settings', icon: Settings },
   ];
 
@@ -306,7 +327,7 @@ function App() {
       <main>
         <header className="topbar">
           <div>
-            <h1>{section === 'devices' ? 'Devices' : section === 'ota' ? 'OTA Update' : 'Settings'}</h1>
+            <h1>{section === 'devices' ? 'Devices' : section === 'ota' ? 'OTA Update' : section === 'chat' ? 'Chat' : 'Settings'}</h1>
             <p>
               {backendStatus
                 ? `Local backend ${backendStatus.url}`
@@ -354,6 +375,15 @@ function App() {
             onSelectDevice={setOtaDeviceId}
             onPickFirmware={pickFirmware}
             onUpload={uploadFirmware}
+          />
+        )}
+
+        {section === 'chat' && (
+          <ChatView
+            messages={chatMessages}
+            device={selectedDevice}
+            apiKey={settings.anthropicApiKey}
+            onMessagesChange={setChatMessages}
           />
         )}
 
@@ -614,6 +644,87 @@ function OtaView(props: {
   );
 }
 
+function ChatView(props: {
+  messages: ChatMessage[];
+  device?: DeviceRecord;
+  apiKey: string;
+  onMessagesChange: (messages: ChatMessage[]) => void;
+}) {
+  const { messages, device, apiKey } = props;
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const bottomRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  async function send() {
+    const text = input.trim();
+    if (!text || busy) return;
+    const next: ChatMessage[] = [...messages, { role: 'user', content: text }];
+    props.onMessagesChange(next);
+    setInput('');
+    setBusy(true);
+    const deviceContext = device
+      ? { name: device.name, ip: device.ip, status: device.status, info: device.info, gpio: device.gpio, logs: device.logs }
+      : undefined;
+    const result = await getApi()?.sendChat({
+      messages: next,
+      deviceContext,
+      apiKey: apiKey || undefined,
+    });
+    setBusy(false);
+    if (result?.ok && result.content) {
+      props.onMessagesChange([...next, { role: 'assistant', content: result.content }]);
+    } else {
+      props.onMessagesChange([...next, { role: 'assistant', content: `Error: ${result?.error || 'No response'}` }]);
+    }
+  }
+
+  return (
+    <div className="chat-view">
+      <div className="chat-messages">
+        {messages.length === 0 && (
+          <div className="chat-empty">
+            <MessageSquare size={36} />
+            <strong>Ask anything about your devices</strong>
+            <span>Device telemetry, GPIO state, and logs are included as context.</span>
+          </div>
+        )}
+        {messages.map((msg, i) => (
+          <div key={i} className={`chat-bubble ${msg.role}`}>
+            <pre>{msg.content}</pre>
+          </div>
+        ))}
+        {busy && (
+          <div className="chat-bubble assistant">
+            <Loader2 className="spin" size={16} />
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+      <div className="chat-input-row">
+        {device && (
+          <span className="chat-context-badge">
+            <Wifi size={13} /> {device.name}
+          </span>
+        )}
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+          placeholder="Ask about your ESP32…"
+          disabled={busy}
+        />
+        <button className="primary" onClick={send} disabled={busy || !input.trim()}>
+          <SendHorizonal size={16} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function SettingsView(props: {
   settings: AppSettings;
   backendStatus: { port: number; url: string; defaultScanRange?: string } | null;
@@ -661,6 +772,15 @@ function SettingsView(props: {
               type="number"
               value={props.settings.backendPort}
               onChange={(event) => props.onSettingsChange({ ...props.settings, backendPort: Number(event.target.value) })}
+            />
+          </label>
+          <label className="field">
+            <span>Anthropic API key (for Chat)</span>
+            <input
+              type="password"
+              value={props.settings.anthropicApiKey}
+              onChange={(event) => props.onSettingsChange({ ...props.settings, anthropicApiKey: event.target.value })}
+              placeholder="sk-ant-… or set ANTHROPIC_API_KEY env var"
             />
           </label>
         </div>

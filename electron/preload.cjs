@@ -13,4 +13,16 @@ contextBridge.exposeInMainWorld('boardroom', {
     ipcRenderer.on('firmware:upload-progress', listener);
     return () => ipcRenderer.removeListener('firmware:upload-progress', listener);
   },
+  sendChat: (payload) => ipcRenderer.invoke('chat:send', payload),
+  setTrackedDevices: (ips) => ipcRenderer.invoke('device:set-tracked', ips),
+  onHeartbeat: (callback) => {
+    const listener = (_event, results) => callback(results);
+    ipcRenderer.on('device:heartbeat', listener);
+    return () => ipcRenderer.removeListener('device:heartbeat', listener);
+  },
+  onDeviceDiscovered: (callback) => {
+    const listener = (_event, result) => callback(result);
+    ipcRenderer.on('device:discovered', listener);
+    return () => ipcRenderer.removeListener('device:discovered', listener);
+  },
 });

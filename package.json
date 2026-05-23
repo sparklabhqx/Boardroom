@@ -13,7 +13,9 @@
     "start": "electron ."
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.98.0",
     "@vitejs/plugin-react": "^5.1.1",
+    "bonjour-service": "^1.4.0",
     "electron": "^39.2.7",
     "lucide-react": "^0.554.0",
     "react": "^19.2.1",
@@ -24,6 +26,7 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "concurrently": "^9.2.1",
+    "playwright-core": "^1.60.0",
     "typescript": "^5.9.3",
     "wait-on": "^9.0.3"
   }
