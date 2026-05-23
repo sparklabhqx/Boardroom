@@ -247,7 +247,7 @@ function createWindow() {
     height: 820,
     minWidth: 980,
     minHeight: 680,
-    backgroundColor: '#f5f1e8',
+    backgroundColor: '#08090e',
     title: 'Boardroom',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
