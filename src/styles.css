@@ -1,6 +1,6 @@
 :root {
-  color: #1d2528;
-  background: #f5f1e8;
+  color: #e2e8ff;
+  background: #08090e;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
@@ -25,9 +25,9 @@ select {
 }
 
 button {
-  border: 1px solid #c6cec9;
-  background: #ffffff;
-  color: #1d2528;
+  border: 1px solid #1e2540;
+  background: #0f1220;
+  color: #c8d4ff;
   min-height: 38px;
   border-radius: 8px;
   padding: 0 14px;
@@ -39,29 +39,49 @@ button {
 }
 
 button:hover:not(:disabled) {
-  border-color: #63736b;
+  border-color: #3b82f6;
+  color: #ffffff;
 }
 
 button:disabled {
   cursor: not-allowed;
-  opacity: 0.56;
+  opacity: 0.4;
 }
 
 button.primary {
-  background: #1f6f59;
-  border-color: #1f6f59;
+  background: #2563eb;
+  border-color: #2563eb;
   color: #ffffff;
+}
+
+button.primary:hover:not(:disabled) {
+  background: #3b82f6;
+  border-color: #3b82f6;
 }
 
 input,
 select {
   width: 100%;
-  border: 1px solid #c6cec9;
-  background: #ffffff;
+  border: 1px solid #1e2540;
+  background: #0f1220;
   border-radius: 8px;
   min-height: 40px;
   padding: 0 12px;
-  color: #1d2528;
+  color: #e2e8ff;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+input::placeholder {
+  color: #3a4568;
+}
+
+select option {
+  background: #0f1220;
 }
 
 .app-shell {
@@ -71,8 +91,9 @@ select {
 }
 
 .sidebar {
-  background: #26302e;
-  color: #f8faf8;
+  background: #050609;
+  border-right: 1px solid #131729;
+  color: #e2e8ff;
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
@@ -84,34 +105,43 @@ select {
   align-items: center;
   gap: 12px;
   padding: 0 8px;
+  color: #3b82f6;
 }
 
 .brand strong {
   display: block;
   font-size: 21px;
+  color: #ffffff;
 }
 
 .brand span,
 .sidebar-status span {
-  color: #cdd8d3;
+  color: #3a4568;
   font-size: 13px;
 }
 
 .sidebar nav {
   display: grid;
-  gap: 8px;
+  gap: 4px;
 }
 
 .sidebar nav button {
   justify-content: flex-start;
   background: transparent;
-  color: #e7f0ec;
+  color: #6b7aaa;
   border-color: transparent;
 }
 
+.sidebar nav button:hover:not(:disabled) {
+  background: #0d1022;
+  border-color: transparent;
+  color: #a8b8ff;
+}
+
 .sidebar nav button.active {
-  background: #f5f1e8;
-  color: #1d2528;
+  background: #0d1840;
+  color: #60a5fa;
+  border-color: #1e3a6e;
 }
 
 .sidebar-status {
@@ -125,6 +155,7 @@ select {
 main {
   min-width: 0;
   padding: 26px;
+  background: #08090e;
 }
 
 .topbar {
@@ -145,14 +176,17 @@ p {
 h1 {
   font-size: 31px;
   line-height: 1.1;
+  color: #ffffff;
 }
 
 h2 {
   font-size: 20px;
+  color: #ffffff;
 }
 
 h3 {
   font-size: 16px;
+  color: #c8d4ff;
 }
 
 .topbar p,
@@ -162,7 +196,7 @@ h3 {
 .device-row span,
 .notice-grid span,
 .file-picker span {
-  color: #65746f;
+  color: #3a4568;
   font-size: 13px;
 }
 
@@ -186,11 +220,11 @@ h3 {
 }
 
 .panel {
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid #d5dbd7;
+  background: #0b0d16;
+  border: 1px solid #131729;
   border-radius: 8px;
   padding: 18px;
-  box-shadow: 0 12px 28px rgba(41, 50, 47, 0.08);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
 }
 
 .panel-header,
@@ -204,7 +238,7 @@ h3 {
 
 .device-list {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .device-row {
@@ -217,9 +251,17 @@ h3 {
   text-align: left;
 }
 
+.device-row strong {
+  color: #c8d4ff;
+}
+
 .device-row.selected {
-  border-color: #1f6f59;
-  background: #edf7f2;
+  border-color: #1e3a6e;
+  background: #0a0f1e;
+}
+
+.device-row.selected strong {
+  color: #60a5fa;
 }
 
 .device-row strong,
@@ -240,16 +282,16 @@ h3 {
 }
 
 .status.online {
-  color: #1f7a57;
+  color: #22c55e;
 }
 
 .status.offline {
-  color: #b84635;
+  color: #ef4444;
 }
 
 .status.unknown,
 .status.loading {
-  color: #697975;
+  color: #3a4568;
 }
 
 .spin {
@@ -269,11 +311,11 @@ h3 {
   align-content: center;
   gap: 9px;
   text-align: center;
-  color: #65746f;
+  color: #3a4568;
 }
 
 .empty-state strong {
-  color: #1d2528;
+  color: #6b7aaa;
 }
 
 .detail-empty {
@@ -287,22 +329,26 @@ h3 {
   border-radius: 8px;
   padding: 12px 14px;
   margin-bottom: 16px;
-  background: #f3f5f2;
-  border: 1px solid #dce2de;
+  background: #0d0f18;
+  border: 1px solid #1e2540;
+}
+
+.status-strip strong {
+  color: #c8d4ff;
 }
 
 .status-strip span {
-  color: #65746f;
+  color: #3a4568;
 }
 
 .status-strip.online {
-  background: #e9f7ef;
-  border-color: #bedcca;
+  background: #071812;
+  border-color: #0d4022;
 }
 
 .status-strip.offline {
-  background: #fff1ed;
-  border-color: #efc8bd;
+  background: #130a0a;
+  border-color: #3d1212;
 }
 
 .status-strip.compact {
@@ -318,9 +364,9 @@ h3 {
 
 .metric {
   min-height: 96px;
-  border: 1px solid #d7ded9;
+  border: 1px solid #131729;
   border-radius: 8px;
-  background: #fbfcfa;
+  background: #070810;
   padding: 12px;
   display: grid;
   align-content: space-between;
@@ -328,16 +374,17 @@ h3 {
 }
 
 .metric svg {
-  color: #1f6f59;
+  color: #3b82f6;
 }
 
 .metric span {
-  color: #65746f;
+  color: #3a4568;
   font-size: 12px;
 }
 
 .metric strong {
   overflow-wrap: anywhere;
+  color: #c8d4ff;
 }
 
 .subsection {
@@ -360,13 +407,25 @@ h3 {
 }
 
 .gpio-button span {
-  color: #65746f;
+  color: #3a4568;
   font-size: 13px;
 }
 
+.gpio-button strong {
+  color: #6b7aaa;
+}
+
 .gpio-button.on {
-  background: #e4f3ec;
-  border-color: #91bea9;
+  background: #071530;
+  border-color: #1e3a6e;
+}
+
+.gpio-button.on svg {
+  color: #3b82f6;
+}
+
+.gpio-button.on strong {
+  color: #60a5fa;
 }
 
 .logs-section {
@@ -379,8 +438,9 @@ h3 {
   max-height: 260px;
   overflow: auto;
   border-radius: 8px;
-  background: #1f2927;
-  color: #d6efe6;
+  background: #030407;
+  color: #7aa4ff;
+  border: 1px solid #131729;
   padding: 14px;
   font-size: 12px;
   line-height: 1.55;
@@ -399,7 +459,7 @@ h3 {
 
 .file-picker {
   min-height: 82px;
-  border: 1px dashed #aab6b1;
+  border: 1px dashed #1e2540;
   border-radius: 8px;
   padding: 14px;
   display: flex;
@@ -408,36 +468,41 @@ h3 {
   gap: 14px;
 }
 
-.file-picker strong,
+.file-picker strong {
+  color: #c8d4ff;
+  display: block;
+}
+
 .file-picker span {
   display: block;
 }
 
 .progress-bar {
   height: 12px;
-  background: #e0e5e2;
+  background: #0d0f18;
   border-radius: 99px;
   overflow: hidden;
+  border: 1px solid #131729;
 }
 
 .progress-bar span {
   display: block;
   height: 100%;
-  background: #1f6f59;
+  background: #2563eb;
   transition: width 160ms ease;
 }
 
 .upload-progress p {
   margin-top: 8px;
-  color: #65746f;
+  color: #3a4568;
 }
 
 .error-text {
-  color: #b84635 !important;
+  color: #ef4444 !important;
 }
 
 .success-text {
-  color: #1f7a57 !important;
+  color: #22c55e !important;
 }
 
 .notice-grid {
@@ -448,13 +513,17 @@ h3 {
 
 .notice-grid div,
 .backend-readout {
-  border: 1px solid #d7ded9;
+  border: 1px solid #131729;
   border-radius: 8px;
-  background: #fbfcfa;
+  background: #070810;
   padding: 14px;
 }
 
-.notice-grid strong,
+.notice-grid strong {
+  display: block;
+  color: #c8d4ff;
+}
+
 .notice-grid span {
   display: block;
 }
@@ -466,7 +535,11 @@ h3 {
 }
 
 .backend-readout span {
-  color: #65746f;
+  color: #3a4568;
+}
+
+.backend-readout strong {
+  color: #c8d4ff;
 }
 
 @media (max-width: 1100px) {
